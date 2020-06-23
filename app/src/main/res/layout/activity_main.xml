@@ -28,14 +28,38 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark">
-
+        <!--
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:paddingLeft="32dp"
-            android:paddingRight="32dp"/>
+            android:paddingRight="32dp"/>//-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/btn_korea"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/korea" />
+            <Button
+                android:id="@+id/btn_english"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/english" />
+            <Button
+                android:id="@+id/btn_auto"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auto" />
+
+        </LinearLayout>
+
 
         <include layout="@layout/item_result"/>
 
@@ -45,6 +69,7 @@
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/primary"
         android:clipToPadding="false"
         android:paddingBottom="@dimen/spacing_small"
         android:paddingTop="@dimen/spacing_small"

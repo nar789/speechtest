@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -32,17 +33,28 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity implements MessageDialogFragment.Listener {
+
+    final private String TAG = "Translate";
 
     private static final String FRAGMENT_MESSAGE_DIALOG = "message_dialog";
 
@@ -116,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
         mColorHearing = ResourcesCompat.getColor(resources, R.color.status_hearing, theme);
         mColorNotHearing = ResourcesCompat.getColor(resources, R.color.status_not_hearing, theme);
 
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        //setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         mStatus = (TextView) findViewById(R.id.status);
         mText = (TextView) findViewById(R.id.text);
 
@@ -126,6 +138,32 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
                 savedInstanceState.getStringArrayList(STATE_RESULTS);
         mAdapter = new ResultAdapter(results);
         mRecyclerView.setAdapter(mAdapter);
+
+        Button korBtn = (Button) this.findViewById(R.id.btn_korea);
+        Button engBtn = (Button) this.findViewById(R.id.btn_english);
+        Button autoBtn = (Button) this.findViewById(R.id.btn_auto);
+
+        korBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TranslateLanguageUtils.target = "kor";
+                TranslateLanguageUtils.speakerLanguage = "en-US";
+            }
+        });
+        engBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TranslateLanguageUtils.target = "en";
+                TranslateLanguageUtils.speakerLanguage = "ko-KR";
+            }
+        });
+        autoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TranslateLanguageUtils.target = null;
+                TranslateLanguageUtils.speakerLanguage = null;
+            }
+        });
     }
 
     @Override
@@ -171,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
             if (permissions.length == 1 && grantResults.length == 1
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -250,8 +288,13 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
                             public void run() {
                                 if (isFinal) {
                                     mText.setText(null);
-                                    mAdapter.addResult(text);
-                                    mRecyclerView.smoothScrollToPosition(0);
+                                    requestTranslate(text, TranslateLanguageUtils.getTarget(text), new TranslateCallback() {
+                                        @Override
+                                        public void run(String response) {
+                                            mAdapter.addResult(response);
+                                            mRecyclerView.smoothScrollToPosition(0);
+                                        }
+                                    });
                                 } else {
                                     mText.setText(text);
                                 }
@@ -289,6 +332,15 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
+            String target = TranslateLanguageUtils.target;
+            if (TextUtils.isEmpty(target)) {
+                target = TranslateLanguageUtils.getLanguageOfDetectedString(mResults.get(position));
+            }
+            if (target.equals("kor")) {
+                holder.itemView.setBackgroundColor(Color.rgb(255, 211, 8));
+            } else {
+                holder.itemView.setBackgroundColor(Color.rgb(8, 211, 255));
+            }
             holder.text.setText(mResults.get(position));
         }
 
@@ -306,6 +358,31 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
             return mResults;
         }
 
+    }
+
+    interface TranslateCallback {
+        void run(String response);
+    }
+
+    private void requestTranslate(String q, String target, final TranslateCallback callback) {
+        Log.d(TAG, "q = " + q + ", target = " + target);
+        String url = "http://nar002.cafe24.com:6615/translate?q=" + q + "&target=" + target;
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        callback.run(response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, error.getMessage());
+            }
+        });
+
+        queue.add(stringRequest);
     }
 
 }

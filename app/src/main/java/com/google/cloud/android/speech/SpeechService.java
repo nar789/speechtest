@@ -213,6 +213,10 @@ public class SpeechService extends Service {
     }
 
     private String getDefaultLanguageCode() {
+        if (TranslateLanguageUtils.speakerLanguage != null) {
+            Log.d("translate", "defaultLang = " + TranslateLanguageUtils.speakerLanguage);
+            return TranslateLanguageUtils.speakerLanguage;
+        }
         final Locale locale = Locale.getDefault();
         final StringBuilder language = new StringBuilder(locale.getLanguage());
         final String country = locale.getCountry();
@@ -220,6 +224,7 @@ public class SpeechService extends Service {
             language.append("-");
             language.append(country);
         }
+        Log.d("translate", "defaultLang = " + language.toString());
         return language.toString();
     }
 

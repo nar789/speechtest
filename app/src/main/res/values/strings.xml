@@ -15,8 +15,11 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">Speech</string>
+    <string name="app_name">AR번역기데모</string>
     <string name="permission_message">This app needs to record audio and recognize your speech.</string>
     <string name="listening">Listening…</string>
     <string name="load_file">Load file</string>
+    <string name="korea">한글로</string>
+    <string name="english">영어로</string>
+    <string name="auto">자동탐지</string>
 </resources>
